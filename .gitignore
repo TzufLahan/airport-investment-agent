@@ -1,0 +1,7 @@
+﻿venv/
+__pycache__/
+.env
+*.pyc
+
+# Large raw BTS downloads — the small, curated snapshot in data/processed/ IS committed.
+data/raw/

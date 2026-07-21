@@ -1,0 +1,17 @@
+# Core data handling
+pandas>=2.0
+pyarrow>=14.0          # parquet read/write for the processed snapshot
+
+# Data acquisition (one-time BTS fetch script)
+requests>=2.31
+
+# LLM edges (entity/intent extraction + phrasing). Optional at runtime:
+# without ANTHROPIC_API_KEY the pipeline uses a deterministic fallback.
+anthropic>=0.40
+python-dotenv>=1.0
+
+# Tests for the deterministic scoring core
+pytest>=8.0
+
+# Optional web chat UI (streamlit run app.py); the CLI needs none of this.
+streamlit>=1.30

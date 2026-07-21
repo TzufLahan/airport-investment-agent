@@ -1,0 +1,66 @@
+iata,icao,name,city,state,region,tier,hub,enplanements_cy24,aliases,staleness_flag,notes
+ATL,KATL,Hartsfield-Jackson Atlanta International,Atlanta,GA,South Atlantic,1,L,52511402,Atlanta|Hartsfield|Hartsfield-Jackson,0,
+BOS,KBOS,Boston Logan International,Boston,MA,New England,1,L,21090721,Boston|Logan|Boston Logan,0,
+BWI,KBWI,Baltimore/Washington Thurgood Marshall International,Baltimore,MD,South Atlantic,1,L,13221461,Baltimore|Baltimore-Washington|Thurgood Marshall,0,
+CLT,KCLT,Charlotte Douglas International,Charlotte,NC,South Atlantic,1,L,28523822,Charlotte|Charlotte Douglas,1,Fourth parallel runway planned (~2027); 2014 capacity may understate future airfield throughput.
+DCA,KDCA,Ronald Reagan Washington National,Washington,VA,South Atlantic,1,L,12750892,Washington National|Reagan|Reagan National|National Airport,0,
+DEN,KDEN,Denver International,Denver,CO,Mountain,1,L,40012895,Denver,0,
+DFW,KDFW,Dallas/Fort Worth International,Dallas,TX,West South Central,1,L,42351316,Dallas|Dallas Fort Worth|Dallas/Fort Worth,0,
+DTW,KDTW,Detroit Metropolitan Wayne County,Detroit,MI,East North Central,1,L,16110696,Detroit|Detroit Metro|Wayne County,0,
+EWR,KEWR,Newark Liberty International,Newark,NJ,Middle Atlantic,1,L,24544320,Newark|Newark Liberty,0,
+FLL,KFLL,Fort Lauderdale-Hollywood International,Fort Lauderdale,FL,South Atlantic,1,L,17096131,Fort Lauderdale|Ft Lauderdale|Hollywood,1,Runway 9R/27L extension opened Sep 2014 (modeled as future in 2014 profile); current capacity slightly higher.
+HNL,PHNL,Daniel K. Inouye International (Honolulu),Honolulu,HI,Pacific,1,L,10449022,Honolulu|Inouye,0,
+IAD,KIAD,Washington Dulles International,Dulles,VA,South Atlantic,1,L,13003234,Washington Dulles|Dulles,0,
+IAH,KIAH,George Bush Intercontinental (Houston),Houston,TX,West South Central,1,L,23349157,Houston Intercontinental|Bush Intercontinental|George Bush,0,
+JFK,KJFK,John F. Kennedy International (New York),New York,NY,Middle Atlantic,1,L,31466102,JFK|Kennedy|John F Kennedy|New York JFK,0,
+LAS,KLAS,Harry Reid International (Las Vegas),Las Vegas,NV,Mountain,1,L,28244966,Las Vegas|McCarran|Harry Reid,0,
+LAX,KLAX,Los Angeles International,Los Angeles,CA,Pacific,1,L,37760834,Los Angeles|LA|Los Angeles International,0,
+LGA,KLGA,LaGuardia (New York),New York,NY,Middle Atlantic,1,L,16715567,LaGuardia|New York LaGuardia,0,
+MCO,KMCO,Orlando International,Orlando,FL,South Atlantic,1,L,27859783,Orlando,0,
+MDW,KMDW,Chicago Midway International,Chicago,IL,East North Central,1,L,10360093,Chicago Midway|Midway,0,
+MEM,KMEM,Memphis International,Memphis,TN,East South Central,1,S,2439366,Memphis,0,Major FedEx cargo superhub; now a Small passenger hub but retains an FAA capacity profile (kept Tier 1).
+MIA,KMIA,Miami International,Miami,FL,South Atlantic,1,L,26588002,Miami,0,
+MSP,KMSP,Minneapolis-Saint Paul International,Minneapolis,MN,West North Central,1,L,18054481,Minneapolis|Minneapolis-Saint Paul|Twin Cities,0,
+ORD,KORD,Chicago O'Hare International,Chicago,IL,East North Central,1,L,38575693,Chicago|Chicago O'Hare|O'Hare|OHare,1,New runway 9C/27C opened Nov 2020 plus reconfiguration; airfield capacity higher than 2014 profile.
+PHL,KPHL,Philadelphia International,Philadelphia,PA,Middle Atlantic,1,L,15102261,Philadelphia|Philly,0,
+PHX,KPHX,Phoenix Sky Harbor International,Phoenix,AZ,Mountain,1,L,25595723,Phoenix|Sky Harbor,0,
+SAN,KSAN,San Diego International,San Diego,CA,Pacific,1,L,12780013,San Diego|Lindbergh,0,
+SEA,KSEA,Seattle-Tacoma International,Seattle,WA,Pacific,1,L,25414592,Seattle|Seattle-Tacoma|Sea-Tac|SeaTac,0,
+SFO,KSFO,San Francisco International,San Francisco,CA,Pacific,1,L,25078968,San Francisco,0,
+SLC,KSLC,Salt Lake City International,Salt Lake City,UT,Mountain,1,L,13543570,Salt Lake City|Salt Lake,0,
+TPA,KTPA,Tampa International,Tampa,FL,South Atlantic,1,L,12075591,Tampa,0,
+SNA,KSNA,John Wayne-Orange County,Santa Ana,CA,Pacific,1,M,5370273,Santa Ana|John Wayne|Orange County|John Wayne Airport,0,Commercial ops/passengers capped by a community Settlement Agreement (amended 2003); practical commercial capacity below runway capacity.
+OAK,KOAK,Metropolitan Oakland International,Oakland,CA,Pacific,1,M,5292736,Oakland,0,
+LGB,KLGB,Long Beach-Daugherty Field,Long Beach,CA,Pacific,1,S,2031810,Long Beach,0,Commercial flights capped by an Airport Noise Compatibility Ordinance; now a Small passenger hub but retains an FAA capacity profile (kept Tier 1).
+ANC,PANC,Ted Stevens Anchorage International,Anchorage,AK,Pacific,2,M,2767856,Anchorage|Ted Stevens|Ted Stevens Anchorage,0,"Major cargo hub, not passenger-capacity constrained; no FAA capacity profile. Demand/trend/long-haul only; congestion not computable."
+BDL,KBDL,Bradley International (Hartford),Windsor Locks,CT,New England,2,M,3285194,Hartford|Bradley|Windsor Locks|Bradley International,0,No FAA capacity profile; demand/growth/volume only.
+BNA,KBNA,Nashville International,Nashville,TN,East South Central,2,L,12058688,Nashville,0,Large hub without an FAA capacity profile; demand/growth/volume only.
+AUS,KAUS,Austin-Bergstrom International,Austin,TX,West South Central,2,L,10678073,Austin,0,Large hub without an FAA capacity profile; demand/growth/volume only.
+DAL,KDAL,Dallas Love Field,Dallas,TX,West South Central,2,M,8654991,Dallas Love|Love Field,0,Secondary airport in the Dallas metro (primary: DFW); no FAA capacity profile.
+PDX,KPDX,Portland International,Portland,OR,Pacific,2,M,8639088,Portland,0,No FAA capacity profile; demand/growth/volume only.
+STL,KSTL,St. Louis Lambert International,St. Louis,MO,West North Central,2,M,7807362,St Louis|Saint Louis|Lambert,0,No FAA capacity profile; demand/growth/volume only.
+RDU,KRDU,Raleigh-Durham International,Raleigh,NC,South Atlantic,2,M,7584394,Raleigh|Durham|Raleigh-Durham|Research Triangle,0,No FAA capacity profile; demand/growth/volume only.
+HOU,KHOU,William P. Hobby (Houston),Houston,TX,West South Central,2,M,7116967,Houston Hobby|Hobby,0,Secondary airport in the Houston metro (primary: IAH); no FAA capacity profile.
+SMF,KSMF,Sacramento International,Sacramento,CA,Pacific,2,M,6679426,Sacramento,0,No FAA capacity profile; demand/growth/volume only.
+MSY,KMSY,Louis Armstrong New Orleans International,New Orleans,LA,West South Central,2,M,6537092,New Orleans|Louis Armstrong,0,No FAA capacity profile; demand/growth/volume only.
+SJU,TJSJ,Luis Munoz Marin International,San Juan,PR,Puerto Rico,2,M,6490669,San Juan|Puerto Rico,0,"Puerto Rico (US territory), outside the Census-division scheme; no FAA capacity profile."
+MCI,KMCI,Kansas City International,Kansas City,MO,West North Central,2,M,5915078,Kansas City,0,No FAA capacity profile; demand/growth/volume only.
+SJC,KSJC,Norman Y. Mineta San Jose International,San Jose,CA,Pacific,2,M,5822019,San Jose|Silicon Valley|Mineta,0,No FAA capacity profile; demand/growth/volume only.
+SAT,KSAT,San Antonio International,San Antonio,TX,West South Central,2,M,5466684,San Antonio,0,No FAA capacity profile; demand/growth/volume only.
+RSW,KRSW,Southwest Florida International,Fort Myers,FL,South Atlantic,2,M,5425293,Fort Myers|Ft Myers|Southwest Florida,0,No FAA capacity profile; demand/growth/volume only.
+IND,KIND,Indianapolis International,Indianapolis,IN,East North Central,2,M,5181947,Indianapolis|Indy,0,No FAA capacity profile; demand/growth/volume only.
+CLE,KCLE,Cleveland Hopkins International,Cleveland,OH,East North Central,2,M,4950345,Cleveland|Hopkins,0,No FAA capacity profile; demand/growth/volume only.
+PIT,KPIT,Pittsburgh International,Pittsburgh,PA,Middle Atlantic,2,M,4862376,Pittsburgh,0,No FAA capacity profile; demand/growth/volume only.
+CVG,KCVG,Cincinnati/Northern Kentucky International,Hebron,KY,East South Central,2,M,4500414,Cincinnati|Northern Kentucky,0,"Located in Hebron, KY; serves Cincinnati, OH. No FAA capacity profile."
+CMH,KCMH,John Glenn Columbus International,Columbus,OH,East North Central,2,M,4387395,Columbus|John Glenn,0,No FAA capacity profile; demand/growth/volume only.
+PBI,KPBI,Palm Beach International,West Palm Beach,FL,South Atlantic,2,M,4127211,Palm Beach|West Palm Beach,0,No FAA capacity profile; demand/growth/volume only.
+JAX,KJAX,Jacksonville International,Jacksonville,FL,South Atlantic,2,M,3749791,Jacksonville,0,No FAA capacity profile; demand/growth/volume only.
+ONT,KONT,Ontario International,Ontario,CA,Pacific,2,M,3494554,Ontario|Inland Empire,0,Secondary airport in the Los Angeles metro; no FAA capacity profile.
+OGG,PHOG,Kahului Airport (Maui),Kahului,HI,Pacific,2,M,3415615,Kahului|Maui,0,No FAA capacity profile; demand/growth/volume only.
+BUR,KBUR,Hollywood Burbank (Bob Hope),Burbank,CA,Pacific,2,M,3383237,Burbank|Bob Hope|Hollywood Burbank,0,Secondary airport in the Los Angeles metro; no FAA capacity profile.
+CHS,KCHS,Charleston International,Charleston,SC,South Atlantic,2,M,3115194,Charleston,0,No FAA capacity profile; demand/growth/volume only.
+MKE,KMKE,Milwaukee Mitchell International,Milwaukee,WI,East North Central,2,M,3104054,Milwaukee|Mitchell,0,No FAA capacity profile; demand/growth/volume only.
+ABQ,KABQ,Albuquerque International Sunport,Albuquerque,NM,Mountain,2,M,2690218,Albuquerque|Sunport,0,No FAA capacity profile; demand/growth/volume only.
+OMA,KOMA,Eppley Airfield (Omaha),Omaha,NE,West North Central,2,M,2583212,Omaha|Eppley,0,No FAA capacity profile; demand/growth/volume only.
+BUF,KBUF,Buffalo Niagara International,Buffalo,NY,Middle Atlantic,2,M,2499295,Buffalo|Niagara,0,No FAA capacity profile; demand/growth/volume only.
+BOI,KBOI,Boise Airport (Gowen Field),Boise,ID,Mountain,2,M,2475370,Boise,0,No FAA capacity profile; demand/growth/volume only.

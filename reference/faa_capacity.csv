@@ -1,0 +1,34 @@
+iata,capacity_visual_min,capacity_visual_max,weather_basis,source,vintage
+ATL,216,226,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+BOS,116,125,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+BWI,68,80,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+CLT,176,182,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+DCA,69,72,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+DEN,262,298,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+DFW,226,264,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+DTW,178,184,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+EWR,94,100,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+FLL,74,82,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+HNL,117,120,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+IAD,150,164,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+IAH,172,199,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+JFK,84,93,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+LAS,122,128,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+LAX,167,176,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+LGA,80,86,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+MCO,160,171,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+MDW,64,84,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+MEM,144,160,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+MIA,132,150,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+MSP,156,167,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+ORD,214,225,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+PHL,120,126,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+PHX,138,145,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+SAN,48,57,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+SEA,100,112,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+SFO,100,110,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+SLC,148,150,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+TPA,113,115,Visual,"FAA Airport Capacity Profiles, May 2014 (Table 1)",2014
+SNA,49,68,Visual,"FAA Airport Capacity Profile Appendix A, 2014 (John Wayne-Orange County)",2014
+OAK,105,138,Visual,"FAA Airport Capacity Profile Appendix A, 2014 (Metropolitan Oakland Intl)",2014
+LGB,48,105,Visual,"FAA Airport Capacity Profile Appendix A, 2014 (Long Beach-Daugherty Field)",2014

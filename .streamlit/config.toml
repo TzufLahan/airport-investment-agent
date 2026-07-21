@@ -1,0 +1,4 @@
+# Serve files in ./static/ at the URL path app/static/<file> (used for the
+# landing-page background video).
+[server]
+enableStaticServing = true
