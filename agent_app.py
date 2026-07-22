@@ -184,11 +184,16 @@ st.caption("The model decides which tools to call; every number comes from a det
 for msg in st.session_state.display:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        if msg.get("trace"):
-            with st.expander(f"🔧 {len(msg['trace'])} tool call(s)"):
-                for t in msg["trace"]:
-                    st.markdown(f"**{t['tool']}** &nbsp; `{_fmt(t['input'], 120)}`")
-                    st.caption(t["output"])
+        trace = msg.get("trace") or []
+        if trace:
+            n_tools = sum(1 for t in trace if t.get("type") == "tool")
+            with st.expander(f"💭 reasoning + {n_tools} tool call(s)"):
+                for t in trace:
+                    if t.get("type") == "think":
+                        st.markdown(f"💭 _{t['text']}_")
+                    else:
+                        st.markdown(f"🔧 **{t['tool']}** &nbsp; `{_fmt(t['input'], 120)}`")
+                        st.caption(t["output"])
 
 # --- new turn ----------------------------------------------------------------
 prompt = st.chat_input("Ask the agent...")
@@ -203,14 +208,18 @@ if prompt:
 
     with st.chat_message("assistant"):
         turn_trace: list[dict] = []
-        with st.status("Thinking — deciding which tools to call...", expanded=True) as status:
+        with st.status("Thinking...", expanded=True) as status:
+            def on_think(text):
+                st.markdown(f"💭 _{text}_")
+                turn_trace.append({"type": "think", "text": text})
+
             def on_tool(name, inp, out):
                 st.markdown(f"🔧 **{name}** &nbsp; `{_fmt(inp, 120)}`")
                 st.caption(_fmt(out))
-                turn_trace.append({"tool": name, "input": inp, "output": _fmt(out)})
+                turn_trace.append({"type": "tool", "tool": name, "input": inp, "output": _fmt(out)})
 
             try:
-                result = st.session_state.agent.ask(prompt, on_tool=on_tool)
+                result = st.session_state.agent.ask(prompt, on_tool=on_tool, on_think=on_think)
             except Exception as exc:
                 result = {"answer": f"Sorry, I hit an error: {exc}"}
             status.update(label=f"Done — {len(turn_trace)} tool call(s)",

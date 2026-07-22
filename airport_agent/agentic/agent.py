@@ -38,8 +38,19 @@ _SYSTEM = (
     "demand_score as equal to a Tier-1 investment_score; state the distinction.\n"
     "- Memory: consider search_memory for the analyst's saved preferences/conclusions; use "
     "save_memory when they state a durable preference or you reach a notable conclusion.\n"
-    "- Honesty: if resolve_airport returns null, say the airport is out of scope. State "
-    "assumptions and limitations. A confident wrong answer is the worst outcome.\n"
+    "- Out of scope: if resolve_airport returns null, STATE CLEARLY and up front that the "
+    "airport is out of scope -- it is not among the 65 airports with our deterministic data, "
+    "so it has NO investment score, ranking, or comparison. You MAY then call web_search (and "
+    "fetch_url) to add qualitative context, but label that explicitly as EXTERNAL web "
+    "information -- not our scored data, and not comparable to the scored airports. Never "
+    "fabricate a score for an out-of-scope airport.\n"
+    "- Honesty: state assumptions and limitations; a confident wrong answer is the worst outcome.\n"
+    "- Think out loud: before each round of tool calls, write a brief plain-text note (one or "
+    "two sentences) of what you understand so far and what you will do next and why, so the "
+    "user can follow your reasoning. Keep these notes short; save the full analysis for the "
+    "final answer.\n"
+    "- Finish EVERY tool call -- including save_memory -- before you write your final answer. "
+    "Your final answer must be your last message: the full analysis, with no tool call in it.\n"
     "- Be concise and concrete, and show the key numbers you used."
 )
 
@@ -61,14 +72,16 @@ class AgenticAgent:
         self._client = llm.get_client()
         self.messages: list[dict] = []  # short-term conversation memory
 
-    def ask(self, question: str, verbose: bool = False, on_tool=None) -> dict:
+    def ask(self, question: str, verbose: bool = False, on_tool=None, on_think=None) -> dict:
         """Run the tool-use loop for one question. Returns {answer, trace, steps}.
 
-        on_tool(name, input, output) is called after each tool runs -- used by the
-        Streamlit UI to stream the agent's 'thinking' (its tool calls) live.
+        on_tool(name, input, output) fires after each tool runs; on_think(text) fires
+        with the model's plain-text reasoning before each round of tool calls. Both let
+        the UI stream the agent's thinking live.
         """
         self.messages.append({"role": "user", "content": question})
         trace: list[dict] = []
+        answer_text = ""  # last substantial text seen (the answer, even if written mid-loop)
 
         for step in range(config.AGENT_MAX_STEPS):
             resp = self._client.messages.create(
@@ -76,10 +89,22 @@ class AgenticAgent:
                 system=_SYSTEM, tools=ALL_SCHEMAS, messages=self.messages,
             )
             self.messages.append({"role": "assistant", "content": resp.content})
+            text = "".join(b.text for b in resp.content if b.type == "text").strip()
+            if len(text) >= 200:  # long text is the answer being composed, not a note
+                answer_text = text
 
             if resp.stop_reason != "tool_use":
-                answer = "".join(b.text for b in resp.content if b.type == "text").strip()
-                return {"answer": answer, "trace": trace, "steps": step + 1}
+                return {"answer": text if len(text) >= 40 else (answer_text or text),
+                        "trace": trace, "steps": step + 1}
+
+            if text and len(text) < 200:  # short text = the model's reasoning note ("thinking")
+                if verbose:
+                    print(f"  [think] {text}")
+                if on_think is not None:
+                    try:
+                        on_think(text)
+                    except Exception:
+                        pass
 
             tool_results = []
             for block in resp.content:
