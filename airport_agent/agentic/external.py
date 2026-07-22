@@ -15,6 +15,8 @@ import urllib.parse
 
 import requests
 
+from .. import config
+
 _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
 
@@ -31,15 +33,25 @@ def _ddg_unwrap(href: str) -> str:
     return params.get("uddg", [full])[0]
 
 
-def web_search(query: str, num_results: int = 5) -> dict:
-    """Keyless web search via the DuckDuckGo HTML endpoint (best-effort)."""
-    try:
-        resp = requests.post("https://html.duckduckgo.com/html/",
-                             data={"q": query}, headers={"User-Agent": _UA}, timeout=15)
-        page = resp.text
-    except Exception as exc:  # network/endpoint issue -> honest empty result
-        return {"query": query, "results": [], "note": f"search unavailable ({exc})"}
+def _brave_search(query: str, num_results: int) -> list[dict]:
+    """Brave Search API (reliable; needs config.BRAVE_API_KEY)."""
+    resp = requests.get(
+        "https://api.search.brave.com/res/v1/web/search",
+        headers={"X-Subscription-Token": config.BRAVE_API_KEY, "Accept": "application/json"},
+        params={"q": query, "count": num_results}, timeout=15)
+    resp.raise_for_status()
+    hits = resp.json().get("web", {}).get("results", [])
+    return [{"title": _strip_tags(h.get("title", "")),
+             "url": h.get("url", ""),
+             "snippet": _strip_tags(h.get("description", ""))[:300]}
+            for h in hits[:num_results]]
 
+
+def _ddg_search(query: str, num_results: int) -> list[dict]:
+    """Keyless DuckDuckGo HTML scrape (best-effort fallback)."""
+    resp = requests.post("https://html.duckduckgo.com/html/",
+                         data={"q": query}, headers={"User-Agent": _UA}, timeout=15)
+    page = resp.text
     results = []
     for m in re.finditer(r'result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', page, re.S):
         results.append({"title": _strip_tags(m.group(2)), "url": _ddg_unwrap(m.group(1))})
@@ -50,10 +62,30 @@ def web_search(query: str, num_results: int = 5) -> dict:
     for i, r in enumerate(results):
         if i < len(snippets):
             r["snippet"] = snippets[i][:300]
+    return results
 
+
+def web_search(query: str, num_results: int = 5) -> dict:
+    """Web search for qualitative context. Uses the Brave Search API when a key is
+    configured (reliable), otherwise falls back to the keyless DuckDuckGo scrape.
+    Degrades gracefully to an empty result on failure."""
+    note = ""
+    if config.BRAVE_API_KEY:
+        try:
+            results = _brave_search(query, num_results)
+            if results:
+                return {"query": query, "source": "brave", "results": results}
+            note = "Brave returned no results; tried DuckDuckGo. "
+        except Exception as exc:
+            note = f"Brave failed ({exc}); tried DuckDuckGo. "
+    try:
+        results = _ddg_search(query, num_results)
+    except Exception as exc:
+        return {"query": query, "results": [], "note": f"{note}search unavailable ({exc})"}
     if not results:
-        return {"query": query, "results": [], "note": "no results (may be rate-limited)"}
-    return {"query": query, "results": results}
+        return {"query": query, "results": [],
+                "note": f"{note}no results (DuckDuckGo may be rate-limited)"}
+    return {"query": query, "source": "duckduckgo", "results": results}
 
 
 def fetch_url(url: str, max_chars: int = 3000) -> dict:

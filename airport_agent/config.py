@@ -63,6 +63,11 @@ AGENT_MODEL = "claude-sonnet-5"
 AGENT_MAX_STEPS = 10                        # loop safety: cap tool-call rounds
 AGENT_MEMORY_FILE = DATA_DIR / "agent_memory.json"  # long-term persistent memory
 
+# --- External tools ----------------------------------------------------------
+# Optional: a Brave Search API key makes the agent's web_search reliable. Without
+# it, web_search falls back to a keyless, best-effort DuckDuckGo scrape.
+BRAVE_API_KEY = os.environ.get("BRAVE_API_KEY")
+
 
 def llm_available() -> bool:
     """True if an API key is configured. When False, the pipeline takes its
