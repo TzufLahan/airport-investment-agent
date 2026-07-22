@@ -61,8 +61,12 @@ class AgenticAgent:
         self._client = llm.get_client()
         self.messages: list[dict] = []  # short-term conversation memory
 
-    def ask(self, question: str, verbose: bool = False) -> dict:
-        """Run the tool-use loop for one question. Returns {answer, trace, steps}."""
+    def ask(self, question: str, verbose: bool = False, on_tool=None) -> dict:
+        """Run the tool-use loop for one question. Returns {answer, trace, steps}.
+
+        on_tool(name, input, output) is called after each tool runs -- used by the
+        Streamlit UI to stream the agent's 'thinking' (its tool calls) live.
+        """
         self.messages.append({"role": "user", "content": question})
         trace: list[dict] = []
 
@@ -87,6 +91,11 @@ class AgenticAgent:
                 if verbose:
                     print(f"  [{step + 1}] {block.name}({json.dumps(block.input, ensure_ascii=False)})"
                           f" -> {_preview(out)}")
+                if on_tool is not None:
+                    try:
+                        on_tool(block.name, dict(block.input), out)
+                    except Exception:
+                        pass  # a UI callback must never break the loop
                 tool_results.append({"type": "tool_result", "tool_use_id": block.id,
                                      "content": json.dumps(out, ensure_ascii=False)})
             self.messages.append({"role": "user", "content": tool_results})
