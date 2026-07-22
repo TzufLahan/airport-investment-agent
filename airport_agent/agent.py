@@ -12,6 +12,7 @@ against what was just discussed.
 
 from .pipeline import resolve as _resolve
 from .pipeline import respond as _respond
+from .pipeline import second_opinion as _second_opinion
 from .pipeline import understand as _understand
 from .pipeline.compute import compute
 
@@ -29,6 +30,15 @@ def ask(question: str, context: dict | None = None) -> tuple[str, dict]:
     resolution = _resolve.resolve(query.airports)
     result = compute(query, resolution.resolved, resolution.unresolved)
     answer = _respond.respond(result)
+
+    # An independent FAA-NPIAS "second opinion" beside the score; a failure here
+    # must never break the primary answer, so it is best-effort.
+    try:
+        extra = _second_opinion.second_opinion(result)
+    except Exception:
+        extra = None
+    if extra:
+        answer = f"{answer}\n\n---\n\n{extra}"
 
     new_context = {"airports": query.airports, "region": query.region}
     return answer, new_context

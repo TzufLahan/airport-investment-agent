@@ -2,8 +2,9 @@
 pandas>=2.0
 pyarrow>=14.0          # parquet read/write for the processed snapshot
 
-# Data acquisition (one-time BTS fetch script)
+# Data acquisition (one-time BTS + NPIAS fetch scripts)
 requests>=2.31
+pypdf>=4.0             # parse per-airport dev cost from the NPIAS Appendix A PDF
 
 # LLM edges (entity/intent extraction + phrasing). Optional at runtime:
 # without ANTHROPIC_API_KEY the pipeline uses a deterministic fallback.

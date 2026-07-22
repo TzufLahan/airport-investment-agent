@@ -114,6 +114,26 @@ def get_capacity(iata: str) -> pd.Series | None:
     return hit.iloc[0] if len(hit) else None
 
 
+@lru_cache(maxsize=1)
+def load_npias() -> pd.DataFrame:
+    """FAA NPIAS 'second opinion' table (5-year dev cost + capacity outlook), one
+    row per in-scope airport. Read only by the second-opinion layer -- never by the
+    deterministic score. Built by scripts/fetch_npias.py."""
+    df = pd.read_csv(config.NPIAS_CSV)
+    df["iata"] = df["iata"].str.strip().str.upper()
+    df["dev_cost_2025_2029"] = df["dev_cost_2025_2029"].astype("Int64")
+    for col in ("capacity_2028", "capacity_2033"):
+        df[col] = df[col].astype(int)
+    return df
+
+
+def get_npias(iata: str) -> pd.Series | None:
+    """Return the NPIAS row for an IATA code, or None if absent."""
+    df = load_npias()
+    hit = df.loc[df["iata"] == iata.strip().upper()]
+    return hit.iloc[0] if len(hit) else None
+
+
 def in_scope_iatas() -> list[str]:
     """All in-scope IATA codes (both tiers)."""
     return load_airports()["iata"].tolist()

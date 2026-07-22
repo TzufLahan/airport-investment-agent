@@ -27,6 +27,11 @@ PROCESSED_DIR = DATA_DIR / "processed"         # small committed snapshot
 AIRPORTS_CSV = REFERENCE_DIR / "airports.csv"
 FAA_CAPACITY_CSV = REFERENCE_DIR / "faa_capacity.csv"
 
+# NPIAS "second opinion" snapshot (built once by scripts/fetch_npias.py, committed).
+# FAA per-airport 5-year development cost + forward runway-capacity outlook. Read
+# only by the second-opinion layer -- never by the deterministic score.
+NPIAS_CSV = REFERENCE_DIR / "npias.csv"
+
 # Processed per-airport metrics snapshot (built once by scripts/fetch_data.py,
 # committed to the repo; the agent reads this, never the live endpoints).
 AIRPORT_METRICS = PROCESSED_DIR / "airport_metrics.csv"
@@ -45,6 +50,10 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 # Small, fast model: the LLM does only light entity/intent extraction and
 # phrasing at the edges — never numeric work — so a compact model suffices.
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+# The second-opinion "FAA analyst" does more than phrase: it reasons over the
+# NPIAS facts and relates them to our score, so it runs on a stronger model than
+# the edges. Still reads facts computed deterministically -- it never invents a number.
+SECOND_OPINION_MODEL = "claude-sonnet-5"
 
 
 def llm_available() -> bool:

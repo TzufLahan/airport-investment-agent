@@ -26,7 +26,8 @@ number an analyst can trust. Three commitments follow:
 
 This is a **workflow** (predefined code path), not an autonomous agent — a
 deliberate choice: the LLM must never be in a position to invent an investment
-number. It sits only at the two edges.
+number. It sits only at the edges — understanding the question, phrasing the answer,
+and an independent second-opinion commentary (§7) — never on the scoring path itself.
 
 ```
 user question
@@ -35,6 +36,7 @@ user question
   -> route     (code)   : Tier 1 (has FAA capacity) / Tier 2
   -> compute   (code)   : congestion / growth / volume -> weighted score
   -> respond   (LLM)    : computed numbers -> natural language + confidence/caveats
+  -> second_opinion (LLM): an independent FAA NPIAS view beside the score (never alters it)
 ```
 
 - **understand** (`pipeline/understand.py`) — Claude extracts a structured `Query`
@@ -48,6 +50,8 @@ user question
   `rank` / `explain`) and assembles the answer's **facts** from the scoring core.
 - **respond** (`pipeline/respond.py`) — Claude phrases those facts, weaving in the
   confidence/limitation statements. It is instructed to use only the numbers given.
+- **second_opinion** (`pipeline/second_opinion.py`) — appended after `respond`: an
+  independent FAA-NPIAS read presented beside the score, never feeding it (§7).
 
 **No API key? The agent still runs.** `understand` degrades to a keyword parser and
 `respond` to a template formatter, so the entire deterministic core is demonstrable
@@ -126,7 +130,9 @@ investment_score = 0.40·congestion_norm + 0.40·growth_norm + 0.20·volume_norm
   with real BTS operations. Validation check: ranking Tier-1 airports by this metric puts
   DCA, LGA, SAN, EWR, JFK at the top — exactly the airports the FAA restricts by Order or
   that are famously single-runway-constrained. A simple metric that reproduces the
-  regulator's own congestion list is a strong signal it is right.
+  regulator's own congestion list is a strong signal it is right. Independently, the FAA's
+  own forward capacity outlook is built from the same ratio and flags an overlapping set of
+  airports (§7) — a second confirmation the KPI measures the right thing.
 - **Normalization is chosen per feature by its distribution.** Congestion and growth are
   bounded, well-behaved → linear min-max stays explainable. Volume is heavy-tailed (ATL/LAX
   dwarf everyone) → log min-max, so a real mid-size airport like SNA isn't crushed to ~0.
@@ -158,16 +164,64 @@ A cross-tier question (e.g. "New England candidates") returns BOS (Tier 1, full 
 | understand | yes (Claude Haiku 4.5) | NL → structured `{intent, airports, region, metric}` via structured output |
 | resolve, route, compute | **no** | deterministic mapping, tiering, scoring |
 | respond | yes (Claude Haiku 4.5) | numbers → prose, weaving in confidence/caveats |
+| second_opinion | yes (Claude Sonnet 5) | independent FAA NPIAS view beside the score; *reasons* over cached facts, never alters a number (§7) |
 
 **Model choice:** the edges are light work (extract a few fields from a sentence; phrase a
 handful of computed numbers). Haiku 4.5 does this accurately, fast, and at ~half a cent per
 question — a deliberate cost/latency/quality call; a larger model would add cost and latency
-with no quality gain for this task. Both edges fall back to deterministic code if the LLM call
-fails or no key is present.
+with no quality gain for this task. The second-opinion layer (§7) is the deliberate exception:
+it *reasons* over two datasets rather than phrasing one, so it runs on the stronger Claude
+Sonnet 5. Every LLM stage falls back to deterministic code if the call fails or no key is present.
 
 ---
 
-## 7. Key tradeoffs
+## 7. Second opinion — an independent FAA NPIAS view
+
+Beside every scored answer, the agent adds a **second opinion**: an independent read from
+the FAA's *National Plan of Integrated Airport Systems* (NPIAS 2025–2029). Where the score
+says "how do our congestion/growth/volume metrics rank this airport", the second opinion
+says "what does the FAA itself say" — and whether the two **agree, diverge, or fill each
+other's gaps**. It is presented in its own block and **never changes a score or a ranking**.
+
+Two independent FAA signals, cached per airport in `reference/npias.csv`
+(built once by `scripts/fetch_npias.py`):
+
+| Signal | Source | Nature |
+|--------|--------|--------|
+| **5-year development cost** | NPIAS Appendix A | the FAA's own $ estimate of each airport's 2025–2029 development need (all 65 airports) |
+| **Forward capacity outlook** | NPIAS Narrative, Figure 1 | the FAA's projected runway-capacity status for 2028 and 2033 (ordinal: not flagged / congested / capacity-constrained / severe) |
+
+**The relationship is decided in code, not by the model.** For each airport, deterministic
+logic compares the FAA capacity flag to our congestion sub-score and classifies the pair as
+*corroborates* (both flag pressure), *diverges* (one runs hotter than the other), or *fills a
+gap* (a Tier-2 airport we cannot measure but the FAA does). A dedicated LLM call then phrases
+that classification — using only the supplied figures — as a short expert note.
+
+**External validation — the FAA measures congestion the way we do.** The NPIAS capacity
+evaluation defines its status from *"the ratio of hourly operational demand to available
+runway capacity"* (congested >60% of the time, capacity-constrained >80%, severe >90%) and
+explicitly excludes gate/terminal constraints. That is, independently, our exact congestion
+metric and our exact airside-not-landside caveat (§9). Its forward list of constrained
+airports overlaps our top-ranked congested airports — a second, independent confirmation the
+congestion KPI is measuring the right thing. It also **fills a real gap**: for Tier-2 airports
+with no FAA capacity profile (SJC, DAL, HOU, SAT), the FAA outlook supplies a congestion
+signal our own data cannot compute.
+
+**A stronger model for a harder job.** Unlike the edges (which extract fields or phrase
+numbers), this analyst *reasons* over two datasets and relates them, so it runs on Claude
+Sonnet 5, not Haiku. It still reads only deterministically-computed figures — it never invents
+a number — and falls back to a deterministic template if the call fails.
+
+**Honest framing, enforced.** "Not flagged" means an airport is absent from the FAA's
+constrained list, not that it is proven fine (the evaluation covers large/medium hubs). The
+development cost is *total* identified development (runway, terminal, safety), not expansion
+alone. Figure 1 is a graphic, so its 27 airports were transcribed manually and cross-checked
+against the FAA's published totals (11 constrained by 2028, 14 by 2033, 13 more at risk) — a
+check enforced both in the build script and in the test suite.
+
+---
+
+## 8. Key tradeoffs
 
 - **Depth vs breadth** — 65 well-instrumented airports over 500 thin ones. The scope boundary
   is authoritative (FAA hub + capacity), so it is defensible rather than arbitrary.
@@ -182,7 +236,7 @@ fails or no key is present.
 
 ---
 
-## 8. Data limitations & assumptions (stated honestly)
+## 9. Data limitations & assumptions (stated honestly)
 
 1. **Airside, not landside.** Congestion measures *runway* pressure. The assignment often asks
    about *terminal* expansion; terminal/gate pressure is inferred only indirectly via passenger
@@ -201,30 +255,35 @@ fails or no key is present.
 6. **Volume source.** Volume uses FAA CY2024 enplanements (authoritative total incl. international);
    growth/long-haul use BTS domestic passengers. Each metric uses its best source.
 7. **Delays deferred.** The confidence-multiplier from on-time performance is not yet wired in.
+8. **NPIAS second opinion is commentary, not a score input.** The FAA development cost is *total*
+   identified development (not expansion alone), and the capacity outlook covers large/medium hubs;
+   both sit beside the score and never feed it (§7).
 
 ---
 
-## 9. Reliability features built in
+## 10. Reliability features built in
 
 - **Silent-join guards.** The reference loader fails loudly if `tier` and capacity-presence
   disagree; the dataset loader fails loudly if any in-scope airport lacks passengers or ops, or a
   Tier-1 airport lacks capacity.
-- **Deterministic, reproducible core.** Same input → same output, locked by `tests/test_scoring.py`
-  (11 unit tests over normalization, sub-scores, weighted total, tier handling).
+- **Deterministic, reproducible core.** Same input → same output, locked by `tests/`
+  (17 unit tests over normalization, sub-scores, weighted total, tier handling, and the NPIAS
+  overlay — including a guard that the capacity-outlook transcription reproduces the FAA's totals).
 - **Graceful degradation.** No API key, an LLM failure, an unresolvable airport name, a bad chat
   turn — none crash the tool; each degrades to an honest fallback.
 
 ---
 
-## 10. Run & verify
+## 11. Run & verify
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env          # optional: add ANTHROPIC_API_KEY for the LLM edges
 python -m airport_agent.cli   # chat; works with or without a key
 
-python -m pytest              # 11 scoring tests
-python scripts/fetch_data.py  # re-build the data snapshot from BTS (one-time)
+python -m pytest              # 17 tests (scoring core + NPIAS overlay)
+python scripts/fetch_data.py  # re-build the BTS metrics snapshot (one-time)
+python scripts/fetch_npias.py # re-build the NPIAS second-opinion snapshot (one-time)
 ```
 
 The four assignment questions, end-to-end:

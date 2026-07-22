@@ -159,6 +159,18 @@ with st.sidebar:
         for key, text in METRIC_DEFINITIONS.items():
             st.markdown(f"**{key.replace('_', ' ').title()}** — {text}")
 
+    with st.expander("🏛️ About the FAA NPIAS view"):
+        st.markdown(
+            "An independent **second opinion** shown beside our score — never part of it. "
+            "Two signals from the FAA's **NPIAS 2025-2029**:\n\n"
+            "- **Development cost** — the FAA's own 5-year $ estimate of each airport's "
+            "build-out need (shown as a percentile across the 65 airports).\n"
+            "- **Capacity outlook** — the FAA's projected runway status for 2028 & 2033: "
+            "not flagged → congested → capacity constrained → severe.\n\n"
+            "_\"Not flagged\" means an airport isn't on the FAA's constrained list — "
+            "not proof it's fine._"
+        )
+
     if st.button("🗑️ Clear conversation", use_container_width=True):
         st.session_state.messages = []
         st.session_state.context = {}

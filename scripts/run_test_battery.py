@@ -12,7 +12,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from airport_agent import config  # noqa: E402
+from airport_agent import config, reference  # noqa: E402
 from airport_agent.agent import ask  # noqa: E402
 from airport_agent.scoring import score  # noqa: E402
 
@@ -89,10 +89,14 @@ def main() -> None:
                 out.append(f"**Q:** {question}\n\n{answer}\n\n---\n")
             print(f"  ok: {thread[0][:60]}")
 
-    # Deterministic ground truth, so every number above can be checked.
-    df = score.score_airports()
+    # Deterministic ground truth, so every number above can be checked -- both the
+    # scoring core and the NPIAS "second opinion" facts (dev cost + capacity outlook).
+    df = score.score_airports().merge(
+        reference.load_npias()[["iata", "dev_cost_2025_2029", "capacity_2028", "capacity_2033"]],
+        on="iata", how="left")
     cols = ["iata", "tier", "hub", "region", "growth_cagr_pct", "longhaul_share_pct",
-            "ops", "congestion_raw", "congestion_norm", "investment_score", "demand_score"]
+            "ops", "congestion_raw", "congestion_norm", "investment_score", "demand_score",
+            "dev_cost_2025_2029", "capacity_2028", "capacity_2033"]
     gt = df[cols].round(1)
     out.append("\n## Deterministic ground truth (verify the numbers above)\n\n```\n"
                + gt.to_string(index=False) + "\n```\n")
