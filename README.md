@@ -45,20 +45,11 @@ python scripts/fetch_npias.py   # FAA NPIAS second-opinion data (dev cost + capa
 
 ## Run
 
-Terminal chat:
-
-```bash
-python -m airport_agent.cli
-```
-
-Or the web chat UI (browser):
+Web chat UI (browser):
 
 ```bash
 streamlit run app.py
 ```
-
-Both are thin views over the same `agent.ask()` pipeline and work with or without
-an API key.
 
 ## Design
 

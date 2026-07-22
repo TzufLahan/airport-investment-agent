@@ -55,6 +55,14 @@ ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 # the edges. Still reads facts computed deterministically -- it never invents a number.
 SECOND_OPINION_MODEL = "claude-sonnet-5"
 
+# --- Autonomous agent (airport_agent/agentic) --------------------------------
+# The tool-using agent reasons over WHICH tools to call in a loop, so it uses a
+# strong model. Every number still comes from a deterministic tool; the model
+# orchestrates and phrases, it never invents a figure.
+AGENT_MODEL = "claude-sonnet-5"
+AGENT_MAX_STEPS = 10                        # loop safety: cap tool-call rounds
+AGENT_MEMORY_FILE = DATA_DIR / "agent_memory.json"  # long-term persistent memory
+
 
 def llm_available() -> bool:
     """True if an API key is configured. When False, the pipeline takes its

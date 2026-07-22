@@ -5,3 +5,9 @@ __pycache__/
 
 # Large raw BTS downloads — the small, curated snapshot in data/processed/ IS committed.
 data/raw/
+
+# Agent long-term memory is a runtime artifact, not source.
+data/agent_memory.json
+
+# Submission / build zips — never commit binaries into the repo.
+*.zip

@@ -9,7 +9,7 @@ explains its reasoning, and supports conversational follow-ups.
 
 ## 1. Guiding principle: reliability over coverage
 
-The hard part of an investment tool is not producing a number — it is producing a
+The hard part of an investment tool is not producing a number , it is producing a
 number an analyst can trust. Three commitments follow:
 
 1. **Deterministic where it counts.** Every score, ranking, mapping, and comparison
@@ -24,10 +24,10 @@ number an analyst can trust. Three commitments follow:
 
 ## 2. Architecture — a routing workflow, LLM at the edges
 
-This is a **workflow** (predefined code path), not an autonomous agent — a
+This is a **workflow** (predefined code path), not an autonomous agent , a
 deliberate choice: the LLM must never be in a position to invent an investment
-number. It sits only at the edges — understanding the question, phrasing the answer,
-and an independent second-opinion commentary (§7) — never on the scoring path itself.
+number. It sits only at the edges , understanding the question, phrasing the answer,
+and an independent second-opinion commentary , never on the scoring path itself.
 
 ```
 user question
@@ -51,7 +51,7 @@ user question
 - **respond** (`pipeline/respond.py`) — Claude phrases those facts, weaving in the
   confidence/limitation statements. It is instructed to use only the numbers given.
 - **second_opinion** (`pipeline/second_opinion.py`) — appended after `respond`: an
-  independent FAA-NPIAS read presented beside the score, never feeding it (§7).
+  independent FAA-NPIAS read presented beside the score, never feeding it.
 
 **No API key? The agent still runs.** `understand` degrades to a keyword parser and
 `respond` to a template formatter, so the entire deterministic core is demonstrable
