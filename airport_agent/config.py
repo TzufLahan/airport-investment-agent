@@ -54,6 +54,12 @@ ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 # NPIAS facts and relates them to our score, so it runs on a stronger model than
 # the edges. Still reads facts computed deterministically -- it never invents a number.
 SECOND_OPINION_MODEL = "claude-sonnet-5"
+# Conversational ("meta") turns -- summarize / recap / restate what was already said --
+# also do more than phrase one fact block: they read a whole transcript, keep every
+# figure and its label intact, and often answer in the analyst's own language. Same
+# reasoning as above, so the same stronger model. Set to ANTHROPIC_MODEL to economise;
+# these turns are a small share of a conversation.
+CONVERSATION_MODEL = "claude-sonnet-5"
 
 # --- Autonomous agent (airport_agent/agentic) --------------------------------
 # The tool-using agent reasons over WHICH tools to call in a loop, so it uses a

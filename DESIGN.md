@@ -50,6 +50,7 @@ user question
   `rank` / `explain`) and assembles the answer's **facts** from the scoring core.
 - **respond** (`pipeline/respond.py`) — Claude phrases those facts, weaving in the
   confidence/limitation statements. It is instructed to use only the numbers given.
+  A fifth intent, `meta`, bypasses the data path entirely — see §2.1.
 - **second_opinion** (`pipeline/second_opinion.py`) — appended after `respond`: an
   independent FAA-NPIAS read presented beside the score, never feeding it.
 
@@ -57,6 +58,35 @@ user question
 `respond` to a template formatter, so the entire deterministic core is demonstrable
 without any LLM or network. This is the architecture claim made literal: unplug the
 edges and the numbers are unchanged.
+
+### 2.1 Conversation memory
+
+`agent.ask()` returns an opaque `context` dict that the caller (CLI or Streamlit)
+hands back on the next turn. It carries two different things, because a follow-up
+needs both:
+
+- **the subject** — `airports` / `region` / `metric`. A question that names none of
+  its own inherits the previous turn's, so *"and why?"* or *"what about its growth?"*
+  resolve against what was just discussed.
+- **the transcript** — the last few question/answer pairs, passed to `respond` as
+  context. Subject alone is not enough: a *ranking* question names no airport, so
+  after one the subject is empty and only the transcript remembers what was shown.
+  `context["iatas"]` therefore also records the codes the answer actually displayed,
+  and a follow-up falls back to those.
+
+A message **about the conversation** rather than about the data — *"summarize the
+previous answers"*, *"what did you just say?"*, *"repeat that in Hebrew"* — is
+classified `meta` and skips `resolve → compute` entirely: `respond_meta` answers from
+the transcript alone. This is a correctness property, not a convenience. The old
+behaviour ran such a message down the data path, computed an empty fact set, and let
+the model improvise ("this appears to be the start of our conversation"). A `meta`
+turn is forbidden to recompute: it reuses the figures **and their labels** exactly as
+already shown, so a summary can never disagree with the answer it summarizes.
+
+Two safety rails: the transcript is capped (`MAX_HISTORY_TURNS`, and each stored
+answer truncated) so a long chat cannot grow the prompt without bound; and if a
+non-`meta` turn computes an empty result while a conversation exists, it falls back
+to the transcript rather than reporting that no airport was found.
 
 ---
 
@@ -164,14 +194,18 @@ A cross-tier question (e.g. "New England candidates") returns BOS (Tier 1, full 
 | understand | yes (Claude Haiku 4.5) | NL → structured `{intent, airports, region, metric}` via structured output |
 | resolve, route, compute | **no** | deterministic mapping, tiering, scoring |
 | respond | yes (Claude Haiku 4.5) | numbers → prose, weaving in confidence/caveats |
+| respond_meta | yes (Claude Sonnet 5) | summarize/restate the conversation; *reads a transcript*, never computes (§2.1) |
 | second_opinion | yes (Claude Sonnet 5) | independent FAA NPIAS view beside the score; *reasons* over cached facts, never alters a number (§7) |
 
 **Model choice:** the edges are light work (extract a few fields from a sentence; phrase a
 handful of computed numbers). Haiku 4.5 does this accurately, fast, and at ~half a cent per
 question — a deliberate cost/latency/quality call; a larger model would add cost and latency
-with no quality gain for this task. The second-opinion layer (§7) is the deliberate exception:
-it *reasons* over two datasets rather than phrasing one, so it runs on the stronger Claude
-Sonnet 5. Every LLM stage falls back to deterministic code if the call fails or no key is present.
+with no quality gain for this task. Two stages are the deliberate exceptions, both for the same
+reason — they *reason* over a body of material rather than phrasing one fact block, so both run
+on the stronger Claude Sonnet 5: the second-opinion layer (§7), which relates two datasets, and
+`respond_meta` (§2.1), which reads a whole transcript and must preserve every figure, label and
+unit while often answering in the analyst's own language. Every LLM stage falls back to
+deterministic code if the call fails or no key is present.
 
 ---
 

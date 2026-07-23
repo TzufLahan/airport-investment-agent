@@ -40,6 +40,13 @@ user question
   -> second_opinion (LLM): an independent FAA NPIAS view beside the score
 ```
 
+**Conversation memory** — `ask()` returns a `context` the caller hands back next turn.
+It carries the previous **subject** (so *"and its growth?"* knows what "it" is) *and* a
+capped **transcript** (so *"summarize the previous answers"* has something to summarize).
+A message about the conversation rather than the data is classified `meta` and skips the
+compute path entirely — it restates what was already shown, and is forbidden to
+recompute, relabel or re-round a figure. See [DESIGN.md](DESIGN.md) §2.1.
+
 **Agent** — the LLM loops over tools that wrap that same core:
 ```
 question + conversation + long-term memory
@@ -130,7 +137,7 @@ deterministic ground truth, tool selection, out-of-scope handling, and 3× consi
 ## Tests
 
 ```bash
-python -m pytest                  # 17 tests (scoring core + NPIAS overlay)
+python -m pytest                  # 31 tests (scoring core + NPIAS overlay + conversation memory)
 python scripts/validate_agent.py  # agent battery (needs a key; makes real LLM + tool calls)
 ```
 

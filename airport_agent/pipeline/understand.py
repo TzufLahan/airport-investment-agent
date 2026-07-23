@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 from .. import config, reference
 
-INTENTS = ("metric", "compare", "rank", "explain")
+INTENTS = ("metric", "compare", "rank", "explain", "meta")
 METRICS = ("congestion", "growth", "volume", "long_haul")
 
 
@@ -32,7 +32,17 @@ _SYSTEM = (
     "US airport modernization. Return intent, airports, region, metric.\n"
     "- intent: 'metric' (a specific figure for an airport), 'compare' (two or more "
     "airports set side by side), 'rank' (which airports in a region/group are the best "
-    "candidates), or 'explain' (why something is the case).\n"
+    "candidates), 'explain' (why something is the case), or 'meta' (see below).\n"
+    "- 'meta' is for a message ABOUT THE CONVERSATION ITSELF rather than a request for new "
+    "data: 'summarize the previous answers', 'recap what you told me', 'what did you just "
+    "say?', 'repeat that in Hebrew', 'which of those did you prefer?'. These are answered "
+    "from the conversation, not by computing anything, so for 'meta' leave airports, region "
+    "and metric EMPTY even if the message names one. A message that asks for a NEW figure, "
+    "ranking or comparison is never 'meta', even when it refers back ('and what about its "
+    "growth?' is 'metric', not 'meta').\n"
+    "- This is a multi-turn chat: a follow-up often leaves its subject implicit. Extract "
+    "only what THIS message names -- the caller carries the previous turn's subject "
+    "forward -- and never invent an airport to fill the gap.\n"
     "- airports: the airports the question is about. Use the natural wording when an "
     "airport is named (e.g. 'Santa Ana', 'the Anchorage airport'). If an airport is "
     "identified only by DESCRIPTION -- a city/metro/landmark it serves or a nickname -- "
@@ -82,16 +92,32 @@ def _llm_understand(question: str) -> Query:
     e = resp.parsed_output
     intent = e.intent if e.intent in INTENTS else "metric"
     metric = e.metric if e.metric in METRICS else None
+    if intent == "meta":  # answered from the conversation; a subject would only mislead
+        return Query(intent, [], None, None, question, source="llm")
     return Query(intent, list(e.airports), e.region, metric, question, source="llm")
 
 
 # --- deterministic fallback ---------------------------------------------------
+
+# Phrases that point back at the conversation rather than at the data. Only treated
+# as 'meta' when the message names no airport and no region of its own -- "summarize
+# the congestion at SFO" is a data question that happens to use the word "summarize".
+_META_PHRASES = (
+    "summar", "recap", "sum up", "in short", "tl;dr", "so far",
+    "previous answer", "previous answers", "previous response", "last answer",
+    "earlier answer", "you just said", "you said", "you told me", "just told me",
+    "what did you say", "say that again", "repeat that", "everything above",
+)
+
 
 def _fallback_understand(question: str) -> Query:
     low = question.lower()
     airports = _match_airports(low)
     region = _match_region(low)
     metric = _match_metric(low)
+
+    if not airports and not region and any(p in low for p in _META_PHRASES):
+        return Query("meta", [], None, None, question, source="fallback")
 
     if any(w in low for w in ("compare", " vs ", " vs.", "versus")) or (
         " or " in low and len(airports) >= 2

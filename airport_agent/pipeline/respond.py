@@ -3,6 +3,12 @@
 The LLM only phrases; every number comes from compute.py. Without a key, a
 deterministic template renders the same facts. Confidence and limitations
 (tier, staleness, domestic-only long-haul) are always surfaced either way.
+
+Two responders, because a chat has two kinds of turn:
+  * respond()      -- a data question: FACTS phrased, with the earlier turns passed
+                      alongside so back-references ("it", "those") resolve.
+  * respond_meta() -- a message about the conversation itself ("summarize what you
+                      told me"): answered from the transcript, with no FACTS at all.
 """
 
 from __future__ import annotations
@@ -13,10 +19,10 @@ from .. import config
 from .compute import Result
 
 
-def respond(result: Result) -> str:
+def respond(result: Result, history: list[dict] | None = None) -> str:
     if config.llm_available():
         try:
-            return _llm_respond(result)
+            return _llm_respond(result, history)
         except Exception:
             pass
     return _template_respond(result)
@@ -50,20 +56,106 @@ _SYSTEM = (
     "'staleness' flag means the 2014 capacity may understate today's; long-haul share is "
     "domestic-passenger-based. congestion_ratio is annual operations per declared hourly "
     "runway slot (higher = more congested); investment_score and demand_score are 0-100. "
-    "If an airport is unresolved/out of scope, say so plainly."
+    "If an airport is unresolved/out of scope, say so plainly.\n"
+    "CONVERSATION: you may also be given the earlier turns of this chat. Use them to read "
+    "the question in context -- to resolve back-references ('it', 'those airports', 'the "
+    "one you just mentioned'), to avoid repeating a caveat you already gave, and to stay "
+    "consistent with what you already said. FACTS remains the ONLY source of figures for "
+    "the current question: never lift a number out of an earlier turn into a new claim "
+    "unless it is also in FACTS, and if the two disagree, FACTS wins."
+)
+
+# The transcript is passed as plain text rather than as prior assistant messages: the
+# earlier answers are evidence to reason over here, not a role-play to continue.
+_HISTORY_HEADER = ("CONVERSATION SO FAR (earlier turns of this same chat, oldest first). "
+                   "Context only -- the current question is below.")
+
+
+def _history_block(history: list[dict] | None) -> str:
+    if not history:
+        return ""
+    parts = [_HISTORY_HEADER]
+    for i, turn in enumerate(history, 1):
+        parts.append(f"[Turn {i}] Analyst asked: {turn.get('question', '')}\n"
+                     f"[Turn {i}] You answered:\n{turn.get('answer', '')}")
+    return "\n\n".join(parts)
+
+
+def _llm_respond(result: Result, history: list[dict] | None = None) -> str:
+    from .. import llm
+
+    blocks = [b for b in (_history_block(history),) if b]
+    blocks.append(f"Question: {result.question}\n\n"
+                  f"FACTS (JSON):\n{json.dumps(_as_dict(result), ensure_ascii=False)}")
+    resp = llm.get_client().messages.create(
+        model=llm.MODEL, max_tokens=700, system=_SYSTEM,
+        messages=[{"role": "user", "content": "\n\n---\n\n".join(blocks)}],
+    )
+    return "".join(b.text for b in resp.content if b.type == "text").strip()
+
+
+# --- meta turns: answered from the transcript, never from a new computation ----
+
+_META_SYSTEM = (
+    "You assist an analyst at a firm that invests in US airport expansion. Their latest "
+    "message is ABOUT THE CONVERSATION so far -- a request to summarize, recap, restate, "
+    "translate or clarify what you already told them -- not a request for new data.\n"
+    "RULES: answer from the CONVERSATION SO FAR and nothing else. Reuse every figure "
+    "EXACTLY as it already appears there -- never recompute, re-derive, update or round a "
+    "number -- and keep each figure's LABEL as well as its value: a Tier-1 airport has an "
+    "investment_score, a Tier-2 airport has a demand_score, and calling one by the other's "
+    "name misstates what was measured. Never bring in an airport that was not already "
+    "discussed. Carry forward "
+    "the caveats that applied to those numbers (Tier 2 = demand signal only, congestion "
+    "not measured; a staleness flag; long-haul share is domestic-passenger-based). If the "
+    "conversation does not contain what is being asked about, say so plainly and name what "
+    "you would need to compute -- do not guess.\n"
+    "Reply in the language the analyst wrote in, but translate only the PROSE: figures, "
+    "units and identifiers stay exactly as they were (miles stay miles -- never convert to "
+    "kilometres; $ stays $; IATA codes and airport names stay in Latin script). A converted "
+    "unit is a wrong number.\n"
+    "Structure a summary as a short through-line first, then the per-airport specifics."
 )
 
 
-def _llm_respond(result: Result) -> str:
+def respond_meta(question: str, history: list[dict] | None = None) -> str:
+    """Answer a message about the conversation itself (summarize, recap, restate)."""
+    if config.llm_available():
+        try:
+            return _llm_meta(question, history)
+        except Exception:
+            pass
+    return _template_meta(history)
+
+
+def _llm_meta(question: str, history: list[dict] | None) -> str:
     from .. import llm
 
-    msg = (f"Question: {result.question}\n\n"
-           f"FACTS (JSON):\n{json.dumps(_as_dict(result), ensure_ascii=False)}")
+    block = _history_block(history) or (
+        "CONVERSATION SO FAR: (empty -- this is the analyst's first message)")
     resp = llm.get_client().messages.create(
-        model=llm.MODEL, max_tokens=700, system=_SYSTEM,
-        messages=[{"role": "user", "content": msg}],
+        model=config.CONVERSATION_MODEL, max_tokens=900, system=_META_SYSTEM,
+        messages=[{"role": "user",
+                   "content": f"{block}\n\n---\n\nAnalyst's latest message: {question}"}],
     )
     return "".join(b.text for b in resp.content if b.type == "text").strip()
+
+
+def _template_meta(history: list[dict] | None) -> str:
+    """No-key fallback: replay the transcript verbatim rather than paraphrase it.
+
+    Paraphrasing needs a model; repeating what was already computed does not, and a
+    verbatim recap can never drift from the figures the analyst was actually shown.
+    """
+    if not history:
+        return ("There is nothing to summarize yet — this is the start of the "
+                "conversation. Ask about an airport or a region first.")
+    blocks = [f"**Recap of this conversation** ({len(history)} "
+              f"{'turn' if len(history) == 1 else 'turns'}, most recent last)"]
+    for i, turn in enumerate(history, 1):
+        blocks.append(f"**{i}. You asked:** {turn.get('question', '')}\n\n"
+                      f"{turn.get('answer', '')}")
+    return "\n\n---\n\n".join(blocks)
 
 
 # --- deterministic template (renders as clean markdown, like the LLM path) ----
